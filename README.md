@@ -1,4 +1,4 @@
-# gia-cdn — self-hosted animated loops on Hetzner
+# gia-cdn — Coolify-hosted animated loops
 
 Goal: serve email-friendly **animated** satellite loops at stable URLs like
 `https://cdn.gia-usa.com/loops/mexpac-latest.gif`, so the bulletin shows real motion
@@ -6,8 +6,11 @@ without the 11-28 MB raw NOAA files. A cron job keeps them fresh; editions just
 embed the stable URL.
 
 ```
-NOAA/NESDIS loop (11-28 MB)  ->  refresh-loops.sh (ffmpeg+gifsicle, ~1 MB)  ->  /var/www/cdn/loops/<name>-latest.gif  ->  cdn.gia-usa.com  ->  embedded in the bulletin
+NOAA/NESDIS loop (11-28 MB)  ->  Coolify container  ->  /usr/share/nginx/html/loops/<name>-latest.gif  ->  cdn.gia-usa.com  ->  embedded in the bulletin
 ```
+
+No Hetzner bucket or object storage is required. Coolify runs the container on
+the server, and the container both refreshes the GIFs and serves them with nginx.
 
 Loops configured today (US-gov, public domain):
 - `mexpac-latest.gif` — GOES-East "mex" sector, Mexico-centered (Pacific coast ports: Vallarta, Cabo, Acapulco, Mazatlán, Manzanillo).
@@ -24,11 +27,11 @@ Coolify handles the domain, HTTPS, and reverse proxy automatically. The containe
 here both **serves** the loops and **refreshes** them every 30 min (built-in cron),
 so there's nothing else to schedule.
 
-1. **DNS:** add an A record `cdn.gia-usa.com -> <your server IP>` (the box Coolify runs on).
+1. **DNS:** in Cloudflare, add an A record `cdn.gia-usa.com -> <your server IP>` (the box Coolify runs on). Set it to **DNS only** while Coolify issues TLS.
 2. In Coolify: **New Resource -> Application**. Source = this `gia-cdn/` folder
    (push it to a Git repo Coolify can read, or use a private repo / "Dockerfile" deploy).
    Set **Build Pack = Dockerfile**.
-3. Set the **Domain** to `https://cdn.gia-usa.com` and **Port = 80`. Coolify issues
+3. Set the **Domain** to `https://cdn.gia-usa.com` and **Port = 80**. Coolify issues
    the TLS cert automatically.
 4. **Deploy.** On boot the container generates `mexpac-latest.gif` + `caribbean-latest.gif`
    and serves them; cron refreshes every 30 min.
@@ -42,10 +45,10 @@ Files used by this deploy: `Dockerfile`, `entrypoint.sh`, `nginx-loops.conf`, `r
 
 ---
 
-## Alternative: manual nginx on the VPS
+## Alternative: manual nginx on a VPS
 
 ### 1. DNS
-Add an **A record**: `cdn.gia-usa.com  ->  <your Hetzner IP>` (at Network Solutions / Web.com).
+Add an **A record** in Cloudflare: `cdn.gia-usa.com  ->  <your server IP>`.
 
 ### 2. Install tools
 ```bash
@@ -78,10 +81,10 @@ sudo certbot --nginx -d cdn.gia-usa.com         # TLS (https)
 
 ### 5. First run + cron
 ```bash
-sudo /var/www/gia-cdn/refresh-loops.sh           # generates the first GIFs
+sudo OUT_DIR=/var/www/cdn/loops /var/www/gia-cdn/refresh-loops.sh           # generates the first GIFs
 ls -lh /var/www/cdn/loops/                        # confirm ~1 MB files
 # then schedule every 30 min:
-( crontab -l 2>/dev/null; echo "*/30 * * * * /var/www/gia-cdn/refresh-loops.sh >> /var/log/gia-loops.log 2>&1" ) | crontab -
+( crontab -l 2>/dev/null; echo "*/30 * * * * OUT_DIR=/var/www/cdn/loops /var/www/gia-cdn/refresh-loops.sh >> /var/log/gia-loops.log 2>&1" ) | crontab -
 ```
 
 ### 6. Verify from anywhere
@@ -99,7 +102,8 @@ Env vars override defaults (in the cron line or shell):
 - `FPS` (default 5) — frame rate
 - `LOSSY` (default 100) — higher = smaller/grainier
 - `COLORS` (default 64) — palette size; fewer = smaller
-Target ~1 MB per loop. Example (smaller): `WIDTH=400 FPS=4 LOSSY=120 /var/www/gia-cdn/refresh-loops.sh`
+Target ~1 MB per loop. In Coolify, set these as application environment variables.
+Manual VPS example (smaller): `OUT_DIR=/var/www/cdn/loops WIDTH=400 FPS=4 LOSSY=120 /var/www/gia-cdn/refresh-loops.sh`
 
 ## Adding / changing regions
 Edit the `LOOPS=(...)` array in `refresh-loops.sh`. Use **US-gov** sources only

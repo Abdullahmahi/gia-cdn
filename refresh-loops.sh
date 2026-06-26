@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# refresh-loops.sh — runs on the Hetzner VPS (via cron).
+# refresh-loops.sh — runs inside the Coolify container.
 # Downloads NOAA/NESDIS animated satellite loops, shrinks each to an
 # email-friendly ~1 MB GIF, and publishes it at a STABLE path so the bulletin
 # can always embed e.g. https://cdn.gia-usa.com/loops/mexpac-latest.gif
@@ -8,14 +8,14 @@
 # Why: NESDIS loops are 11-28 MB (too heavy for email). We re-host an optimized
 # copy on our own CDN. Only US-gov (public-domain) sources are used here.
 #
-# Requires: curl, ffmpeg, gifsicle   ->   sudo apt-get install -y ffmpeg gifsicle curl
+# Requires: curl, ffmpeg, gifsicle. The Dockerfile installs these for Coolify.
 #
-# Cron (every 30 min):
-#   */30 * * * * /var/www/gia-cdn/refresh-loops.sh >> /var/log/gia-loops.log 2>&1
+# Manual VPS cron example (every 30 min):
+#   */30 * * * * OUT_DIR=/var/www/cdn/loops /var/www/gia-cdn/refresh-loops.sh >> /var/log/gia-loops.log 2>&1
 
 set -euo pipefail
 
-OUT_DIR="${OUT_DIR:-/var/www/cdn/loops}"   # served at https://cdn.gia-usa.com/loops/
+OUT_DIR="${OUT_DIR:-/usr/share/nginx/html/loops}"   # served at https://cdn.gia-usa.com/loops/
 WIDTH="${WIDTH:-440}"                        # output width in px
 FPS="${FPS:-5}"                              # output frame rate
 LOSSY="${LOSSY:-100}"                        # gifsicle lossy level (higher = smaller)
