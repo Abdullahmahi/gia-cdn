@@ -1,7 +1,7 @@
 # gia-cdn — self-hosted animated loops on Hetzner
 
 Goal: serve email-friendly **animated** satellite loops at stable URLs like
-`https://cdn.gia-usa.com/loops/epac-latest.gif`, so the bulletin shows real motion
+`https://cdn.gia-usa.com/loops/mexpac-latest.gif`, so the bulletin shows real motion
 without the 11-28 MB raw NOAA files. A cron job keeps them fresh; editions just
 embed the stable URL.
 
@@ -10,7 +10,7 @@ NOAA/NESDIS loop (11-28 MB)  ->  refresh-loops.sh (ffmpeg+gifsicle, ~1 MB)  ->  
 ```
 
 Loops configured today (US-gov, public domain):
-- `epac-latest.gif` — GOES-West, eastern Pacific (off Baja / the EPAC approach).
+- `mexpac-latest.gif` — GOES-East "mex" sector, Mexico-centered (Pacific coast ports: Vallarta, Cabo, Acapulco, Mazatlán, Manzanillo).
 - `caribbean-latest.gif` — GOES-East, Caribbean (Cancún/Cozumel, Florida, Bahamas).
 
 (Outlook **desktop** shows only the first frame of any GIF — an Outlook limitation.
@@ -86,7 +86,7 @@ ls -lh /var/www/cdn/loops/                        # confirm ~1 MB files
 
 ### 6. Verify from anywhere
 ```
-https://cdn.gia-usa.com/loops/epac-latest.gif
+https://cdn.gia-usa.com/loops/mexpac-latest.gif
 https://cdn.gia-usa.com/loops/caribbean-latest.gif
 ```
 Both should load and animate, each ~1 MB.

@@ -3,7 +3,7 @@
 # refresh-loops.sh — runs on the Hetzner VPS (via cron).
 # Downloads NOAA/NESDIS animated satellite loops, shrinks each to an
 # email-friendly ~1 MB GIF, and publishes it at a STABLE path so the bulletin
-# can always embed e.g. https://cdn.gia-usa.com/loops/epac-latest.gif
+# can always embed e.g. https://cdn.gia-usa.com/loops/mexpac-latest.gif
 #
 # Why: NESDIS loops are 11-28 MB (too heavy for email). We re-host an optimized
 # copy on our own CDN. Only US-gov (public-domain) sources are used here.
